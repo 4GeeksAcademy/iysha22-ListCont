@@ -1,16 +1,160 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="icon" href="/4geeks.ico" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello Rigo</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-  </body>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact List</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+</head>
+<body class="bg-white p-6">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex justify-end mb-4">
+      <button id="toggleFormBtn" class="bg-green-600 hover:bg-green-700 text-white font-semibold text-sm px-4 py-2 rounded">
+        Add new contact
+      </button>
+    </div>
+
+    <form id="contactForm" class="mb-4 hidden bg-gray-100 p-4 rounded-md space-y-2">
+      <input type="hidden" id="contactId">
+      <input type="text" id="name" placeholder="Full Name" class="w-full p-2 border rounded" required />
+      <input type="text" id="address" placeholder="Address" class="w-full p-2 border rounded" required />
+      <input type="tel" id="phone" placeholder="Phone" class="w-full p-2 border rounded" required />
+      <input type="email" id="email" placeholder="Email" class="w-full p-2 border rounded" required />
+      <input type="url" id="image" placeholder="Image URL" class="w-full p-2 border rounded" />
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+        Save Contact
+      </button>
+    </form>
+
+    <div id="contactList" class="border border-gray-300 rounded-md divide-y divide-gray-300"></div>
+  </div>
+
+<script>
+  let contacts = JSON.parse(localStorage.getItem('contacts')) || [
+    {
+      id: 1,
+      name: "Luis Martin",
+      address: "5842 Hillcrest Rd",
+      phone: "(870) 288-4149",
+      email: "Luis.martin@example.com",
+      image: "https://wmagazin.com/wp-content/uploads/2024/01/EF-ppal-2024-Luis-Martin.Santos-fuerza-renovacionliteratura-iniciada-tiempodesilencio.jpg"
+    },
+    {
+      id: 2,
+      name: "Pere Gil",
+      address: "5842 Hillcrest Rd",
+      phone: "(870) 288-4149",
+      email: "Pere.Gil@example.com",
+      image: "https://pellagofio.es/wp-content/uploads/2019/09/gallinas-canarias-7819-1a.jpg"
+    },
+    {
+      id: 3,
+      name: "Fermín Galarga",
+      address: "5842 Hillcrest Rd",
+      phone: "(870) 288-4149",
+      email: "Fermin.Galarga@example.com",
+      image: "https://media.istockphoto.com/id/108226626/es/foto/felino.jpg?s=612x612&w=0&k=20&c=N2FTu-My9mHsPeX_BcyuZro6kjVw7HCX1Kjwd_ODEUg="
+    },
+    {
+      id: 4,
+      name: "Rafael Nieto de Dios",
+      address: "5842 Hillcrest Rd",
+      phone: "(870) 288-4149",
+      email: "Rafael.NietoDeDios@example.com",
+      image: "https://madagascarmascotas.com/blog/wp-content/uploads/2021/10/calcular-la-edad-de-un-perro.jpg"
+    }
+  ];
+
+  const form = document.getElementById('contactForm');
+  const contactList = document.getElementById('contactList');
+  const toggleFormBtn = document.getElementById('toggleFormBtn');
+
+  const nameInput = document.getElementById('name');
+  const addressInput = document.getElementById('address');
+  const phoneInput = document.getElementById('phone');
+  const emailInput = document.getElementById('email');
+  const imageInput = document.getElementById('image');
+  const contactIdInput = document.getElementById('contactId');
+
+  toggleFormBtn.addEventListener('click', () => {
+    form.classList.toggle('hidden');
+    form.reset();
+    contactIdInput.value = '';
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const contact = {
+      id: contactIdInput.value || Date.now(),
+      name: nameInput.value,
+      address: addressInput.value,
+      phone: phoneInput.value,
+      email: emailInput.value,
+      image: imageInput.value || 'https://via.placeholder.com/80'
+    };
+
+    if (contactIdInput.value) {
+      contacts = contacts.map(c => c.id == contact.id ? contact : c);
+    } else {
+      contacts.push(contact);
+    }
+
+    saveAndRender();
+    form.reset();
+    form.classList.add('hidden');
+    contactIdInput.value = '';
+  });
+
+  contactList.addEventListener('click', (e) => {
+    const parent = e.target.closest('.contact-card');
+    const id = parent?.dataset.id;
+
+    if (e.target.closest('.deleteContact')) {
+      contacts = contacts.filter(c => c.id != id);
+      saveAndRender();
+    }
+
+    if (e.target.closest('.editContact')) {
+      const contact = contacts.find(c => c.id == id);
+      nameInput.value = contact.name;
+      addressInput.value = contact.address;
+      phoneInput.value = contact.phone;
+      emailInput.value = contact.email;
+      imageInput.value = contact.image;
+      contactIdInput.value = contact.id;
+      form.classList.remove('hidden');
+    }
+  });
+
+  function saveAndRender() {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+    renderContacts();
+  }
+
+  function renderContacts() {
+    contactList.innerHTML = '';
+    contacts.forEach(contact => {
+      contactList.innerHTML += `
+        <div class="flex items-center p-4 contact-card" data-id="${contact.id}">
+          <img class="w-20 h-20 rounded-full object-cover flex-shrink-0" src="${contact.image}" alt="${contact.name}" />
+          <div class="flex-1 px-6">
+            <h2 class="text-gray-900 text-base font-normal mb-1">${contact.name}</h2>
+            <div class="text-gray-600 text-sm space-y-1">
+              <p class="flex items-center"><i class="fas fa-map-marker-alt mr-2 text-gray-500"></i>${contact.address}</p>
+              <p class="flex items-center"><i class="fas fa-phone mr-2 text-gray-500"></i>${contact.phone}</p>
+              <p class="flex items-center"><i class="fas fa-envelope mr-2 text-gray-500"></i>${contact.email}</p>
+            </div>
+          </div>
+          <div class="flex space-x-4 text-black text-lg">
+            <button type="button" class="editContact" aria-label="Edit contact"><i class="fas fa-pencil-alt"></i></button>
+            <button type="button" class="deleteContact" aria-label="Delete contact"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>`;
+    });
+  }
+
+  renderContacts();
+</script>
+</body>
 </html>

@@ -1,26 +1,57 @@
-import { useEffect, useRef } from "react";
-import PropTypes from "prop-types";
+// ScrollToTop.jsx
+function ScrollToTop() {
+    const [visible, setVisible] = React.useState(false);
 
-// This component allows the scroll to go to the beginning when changing the view,
-// otherwise it would remain in the position of the previous view. 
-// Investigate more about this React behavior :D 
-
-const ScrollToTop = ({ location, children }) => {
-    const prevLocation = useRef(location);
-
-    useEffect(() => {
-        if (location !== prevLocation.current) {
-            window.scrollTo(0, 0);
+    React.useEffect(() => {
+      function toggleVisibility() {
+        if (window.pageYOffset > 300) {
+          setVisible(true);
+        } else {
+          setVisible(false);
         }
-        prevLocation.current = location;
-    }, [location]);
+      }
+      window.addEventListener("scroll", toggleVisibility);
+      return () => window.removeEventListener("scroll", toggleVisibility);
+    }, []);
 
-    return children;
-};
+    function scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
 
-export default ScrollToTop;
+    return (
+      visible && (
+        <button
+          onClick={scrollToTop}
+          aria-label="Scroll to top"
+          className="fixed bottom-6 right-6 bg-green-600 hover:bg-green-700 text-white p-3 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+        >
+          <i className="fas fa-arrow-up"></i>
+        </button>
+      )
+    );
+  }
 
-ScrollToTop.propTypes = {
-    location: PropTypes.object,
-    children: PropTypes.any
-};
+  // Example usage in App component
+  function App() {
+    return (
+      <>
+        <Navbar />
+        <div className="pt-20 max-w-4xl mx-auto p-4">
+          <h1 className="text-3xl font-bold mb-8">Page Content</h1>
+          <p className="mb-4">
+            Scroll down to see the ScrollToTop button appear in the bottom right.
+          </p>
+          <div style={{ height: "1500px" }} className="bg-gray-100 rounded p-4">
+            {/* Just filler content */}
+            <p>Lots of content here...</p>
+          </div>
+        </div>
+        <ScrollToTop />
+      </>
+    );
+  }
+
+  ReactDOM.render(<App />, document.getElementById("root"));
